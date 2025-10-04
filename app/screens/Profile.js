@@ -1,8 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 
-import { Image, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 import Header from "../../components/customComponent/Header";
 import MyButton from "../../components/customComponent/MyButton";
@@ -13,7 +15,8 @@ import { default as Colors } from '../../constants/colors';
 
 export default function Profile({ navigation }) {
     
-  const profileUri = require("../../assets/images/profile.png"); // Replace with actual profile image
+ // const profileUri = require("../../assets/images/profile.png"); // Replace with actual profile image
+  const [profileUri, setprofileUri] = useState(null);
   const [firstName, setfirstName] = useState("");
   const [lastName, setlastName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,7 +34,8 @@ export default function Profile({ navigation }) {
       try {
         const savedProfile = await AsyncStorage.getItem("profileData");
         if (savedProfile) {
-          const { firstName,lastName, email, phone ,notificationPrefs} = JSON.parse(savedProfile);
+          const { profileUri,firstName,lastName, email, phone ,notificationPrefs} = JSON.parse(savedProfile);
+          setprofileUri(profileUri);
           setfirstName(firstName);
           setlastName(lastName);
           setEmail(email)
@@ -51,10 +55,7 @@ export default function Profile({ navigation }) {
     loadProfile();
   }, []);
 
-      const handleProfilePress = () => {
-          navigation.navigate('Profile');
-      };
-
+    
       const handleBackPress = () => {
           navigation.goBack();
       } 
@@ -90,7 +91,8 @@ export default function Profile({ navigation }) {
       }
     
      // save value to storage
-    async function handleSaveChanges() {
+    async function handleSaveChanges() 
+    {
     if (!validateEmail(email)) {
       alert("Please enter a valid email address.");
       return;
@@ -101,14 +103,99 @@ export default function Profile({ navigation }) {
     } 
 
      try {
-      const profileData = { firstName,lastName,email, phone ,notificationPrefs};
+      const profileData = { profileUri,firstName,lastName,email, phone ,notificationPrefs};
       await AsyncStorage.setItem("profileData", JSON.stringify(profileData));
       console.log("Profile saved!");
+
+      Toast.show({
+        type: "success", // 'success' | 'error' | 'info'
+        text1: "Profile saved sucessfully!" // Title
+        // text2: "This is some something 👋" // Subtitle
+      });
+
     } catch (error) {
       console.log("Error saving profile:", error);
     }
   }
-  
+   // Save image
+  const saveImage = async (uri) => {
+    try {
+      setprofileUri(uri);
+    } catch (error) {
+      console.log("Error saving image:", error);
+    }
+  };
+   // Remove image
+  const removeImage = () => {
+    Alert.alert(
+      "Remove Profile Picture",
+      "Do you want to remove your profile picture?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: async () => {
+            setprofileUri(null);
+          },
+        },
+      ]
+    );
+  };
+// Pick image from gallery
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "We need access to your gallery.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) saveImage(result.assets[0].uri);
+  };
+   // Take photo
+    const takePhoto = async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission required", "We need access to your camera.");
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+      if (!result.canceled) saveImage(result.assets[0].uri);
+    };
+
+  // Open menu
+  const handleChangeImage = () => {
+    Alert.alert(
+      "Profile Picture",
+      "Choose an option",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Pick from Gallery 📁", onPress: pickImage },
+        { text: "Take Photo 📷", onPress: takePhoto },
+        { text: "Remove Photo ❌", style: "destructive", onPress: removeImage },
+      ],
+      { cancelable: true }
+    );
+  };
+  // Display initials if no image
+  const getInitials = () => {
+    const firstInitial = firstName?.[0]?.toUpperCase() || "";
+    const lastInitial = lastName?.[0]?.toUpperCase() || "";
+    return firstInitial + lastInitial;
+  };
+
+
 
    // Clear data + reset form
   const clearProfile = async () => {
@@ -168,15 +255,20 @@ export default function Profile({ navigation }) {
                 <View style={styles.imageContainer}>
                     <View>
                     <Text style={styles.avtar}>Avtar</Text>
-                        <TouchableOpacity onPress={handleProfilePress}>
-                            <Image style={styles.userImage} source={profileUri} />
+                        <TouchableOpacity onPress={handleChangeImage}>
+                            {/* <Image style={styles.userImage} source={profileUri} /> */}
+                            {profileUri ? (<Image source={{ uri: profileUri }} style={styles.userImage} />
+                              ) : (<View style={styles.userImage}>
+                                        <Text style={styles.initialsText}>{getInitials()}</Text>
+                                  </View>
+                        )}
                         </TouchableOpacity>
                     </View>
                     <View style={styles.buttonView}>
-                       <MyButton  text="Change" onPress={() => {}}></MyButton>
+                       <MyButton  text="Change" onPress={handleChangeImage}/>
                     </View>
                     <View style={styles.buttonView}>
-                      <MyButtonLight text="Remove" onPress={() => {}}></MyButtonLight>
+                      <MyButtonLight text="Remove" onPress={removeImage}/>
                     </View>
                     
                 </View>
@@ -257,8 +349,10 @@ export default function Profile({ navigation }) {
                <MyButtonLight  text="Discard changes" onPress={discardChanges}></MyButtonLight>
                <MyButton text="Save changes" onPress={handleSaveChanges}></MyButton>
             </View>
+         
             </View>
             </ScrollView>
+            <Toast />
         </SafeAreaView>
         
     );
@@ -291,6 +385,13 @@ const styles = StyleSheet.create({
       fontWeight: "bold",
       fontFamily: "Karla",
     },
+    initialsText:{
+        padding:20,
+        fontSize: 32,
+        color: Colors.white,
+        fontWeight: "bold",
+        textAlign: "center",
+    },
     imageContainer:{
       flexDirection: "row",
       justifyContent: "space-between",
@@ -302,8 +403,11 @@ const styles = StyleSheet.create({
     userImage:{
       height: 100,
       width: 100,
-      borderRadius: 40,
+      borderRadius: 50,
       marginRight:20,
+      backgroundColor: Colors.secondary1,
+      alignItems:"center",
+      justifyContent:"center",
     },
     buttonView:{
     paddingRight:10,

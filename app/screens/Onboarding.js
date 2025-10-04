@@ -55,16 +55,20 @@ export default function Onboarding({ navigation }) {
       if (!registeredUser) {
         const newUser = { firstName, email };
         await AsyncStorage.setItem("profileData", JSON.stringify(newUser));
-        navigation.replace("Home");
+        navigation.replace("HomeTest");
         return;
       }
     // If user exists → validate
       if (
-        firstName === registeredUser.firstname &&
-        email === registeredUser.email
-      ) {
-        navigation.replace("Home");
+        firstName === registeredUser.firstName &&
+        email === registeredUser.email) 
+      {
+        console.log("First name= "  + firstName + " Email= " + email);
+        navigation.replace("HomeTest");
       } else {
+        console.log("First name= "  + firstName + " Email= " + email);
+        console.log("registeredUser.firstName= "  + registeredUser.firstName +
+           " registeredUser.email= " + registeredUser.email);
         Alert.alert("Login Failed", "Invalid firstname or email");
       }
 
@@ -130,12 +134,14 @@ const styles = StyleSheet.create({
   },
   heading:{
     fontSize: 42,
+    marginLeft:-7,
     color: Colors.primary2_yellow,
     fontWeight: "bold",
     fontFamily: "Karla", // Apply Karla font
   },
   subHeading:{
     fontSize: 30,
+    marginLeft:-7,
     color: Colors.white,
   },
   paraText:{

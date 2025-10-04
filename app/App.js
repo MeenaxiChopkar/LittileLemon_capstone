@@ -1,43 +1,100 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createStackNavigator } from "@react-navigation/stack";
+import { Video } from "expo-av";
 import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 
-import Home from "./screens/Home";
+import HomeTest from "./screens/HomeTest";
 import Onboarding from "./screens/Onboarding";
 import Profile from "./screens/Profile";
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [initialRoute, setInitialRoute] = useState("Onboarding");
+  const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    const checkLogin = async () => {
-      const isLogin = await AsyncStorage.getItem("isLogin");
-      setInitialRoute(isLogin === "true" ? "Home" : "Onboarding");
-    };
-    checkLogin();
-    // Only run on app mount, not on every render
-    }, []);
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const userData = await AsyncStorage.getItem("profileData");
-      if (userData) {
-        setInitialRoute("Home"); // If logged in, go directly to Home
+    const checkUserData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem("profileData");
+        console.log("User Data on onboarding screen:", userData);
+        setInitialRoute(userData ? "HomeTest" : "Onboarding");
+        console.log("initialRoute==",initialRoute);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setInitialRoute("Onboarding");
       }
     };
-    checkLogin();
+
+    checkUserData();
   }, []);
 
+  // Wait until AsyncStorage check is done
+  if (!initialRoute ) {
+    return (
+      <View style={styles.container}>
+        <Video
+          source={require("../assets/video/splashScreenVideo.mp4")} // put your file in assets
+          style={styles.video}
+          resizeMode="cover"
+          shouldPlay
+          isLooping={true}
+          
+        />
+      </View>
+    );
+  }
+
+  // Render navigator only after route is known
   return (
-      <Stack.Navigator
-        initialRouteName={initialRoute}
-        screenOptions={{ headerShown: false }}
-      >
+   
+      <Stack.Navigator initialRouteName={initialRoute}
+         screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={Onboarding} />
-        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="HomeTest" component={HomeTest} />
         <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
+    
   );
 }
+
+// export default function App() {
+//   const [initialRoute, setInitialRoute] = useState("Onboarding");
+
+//   useEffect(() => {
+//     (async () => {
+//       try {
+//         const userData = await AsyncStorage.getItem("profileData");
+//         console.log("User Data on onboarding screen:", userData);
+//         setInitialRoute(userData ? "HomeTest" : "Onboarding");
+//         console.log("Initial Route:", userData ? "HomeTest" : "Onboarding");
+//       } catch (error) {
+//         console.error("Error fetching user data:", error);
+//       }
+//     })();
+//   }, []);
+
+//   return (
+//       <Stack.Navigator
+//         initialRouteName={initialRoute}
+//         screenOptions={{ headerShown: false }}
+//       >
+//         <Stack.Screen name="Onboarding" component={Onboarding} />
+//         <Stack.Screen name="HomeTest" component={HomeTest} />
+//         <Stack.Screen name="Profile" component={Profile} />
+//       </Stack.Navigator>
+//   );
+// }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  video: {
+    width: "100%",
+    height: "100%",
+  },
+});
