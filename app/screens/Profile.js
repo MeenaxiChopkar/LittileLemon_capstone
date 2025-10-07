@@ -102,17 +102,27 @@ export default function Profile({ navigation }) {
       return;
     } 
 
+     showConfirmAlert({
+      title: "Save confiramtion?",
+      message: "your changes have been saved successfully!",
+      cancelText: "okay",
+      onCancel: () => console.log("User cancelled ❌"),
+    });
+
      try {
       const profileData = { profileUri,firstName,lastName,email, phone ,notificationPrefs};
       await AsyncStorage.setItem("profileData", JSON.stringify(profileData));
       console.log("Profile saved!");
 
-      Toast.show({
-        type: "success", // 'success' | 'error' | 'info'
-        text1: "Profile saved sucessfully!" // Title
-        // text2: "This is some something 👋" // Subtitle
+      showConfirmAlert({
+      title: "Save confiramtion?",
+      message: "your changes have been saved successfully!",
+      yesText: "Okay",
+      cancelText: "Cancel",
+      onCancel: () => console.log("User cancelled ❌"),
+      onYes:() => handleBackPress()
       });
-
+    
     } catch (error) {
       console.log("Error saving profile:", error);
     }
@@ -256,7 +266,6 @@ export default function Profile({ navigation }) {
                     <View>
                     <Text style={styles.avtar}>Avtar</Text>
                         <TouchableOpacity onPress={handleChangeImage}>
-                            {/* <Image style={styles.userImage} source={profileUri} /> */}
                             {profileUri ? (<Image source={{ uri: profileUri }} style={styles.userImage} />
                               ) : (<View style={styles.userImage}>
                                         <Text style={styles.initialsText}>{getInitials()}</Text>

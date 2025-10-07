@@ -1,16 +1,12 @@
 import { Ionicons } from '@expo/vector-icons'; // Make sure to install @expo/vector-icons
-import { useNavigation } from '@react-navigation/native';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
+
 import colors from '../../constants/colors';
+import ProfileAvatar from "./ProfileAvatar";
 
 const Header = ({ showBack, onBackPress, showProfileImage }) => {
-    const navigation = useNavigation();
-    const profileUri = require("../../assets/images/profile.png"); // Replace with actual profile image
-    
-    const handleProfilePress = () => {
-        navigation.navigate('Profile');
-    };
+
 
     return (
         <View style={styles.container}>
@@ -23,15 +19,12 @@ const Header = ({ showBack, onBackPress, showProfileImage }) => {
             </View>
             <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
             <View style={styles.sideContainer}>
-                {showProfileImage ? (
-                    <TouchableOpacity onPress={handleProfilePress}>
-                        <Image source={profileUri} style={styles.profile} />
-                    </TouchableOpacity>
-                ) : null}
+                    <ProfileAvatar size={50} />
             </View>
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -52,11 +45,7 @@ const styles = StyleSheet.create({
         height: 40,
         alignSelf: 'center',
     },
-    profile: {
-        width: 50,
-        height: 50,
-        borderRadius: 18,
-    },
+    
 });
 
 export default Header;

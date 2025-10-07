@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 
-import Header from "../../components/customComponent/Header";
 import MyButton from "../../components/customComponent/MyButton";
 import MyTextInput from "../../components/customComponent/MyTextInput";
 import Colors from '../../constants/colors';
@@ -55,7 +54,7 @@ export default function Onboarding({ navigation }) {
       if (!registeredUser) {
         const newUser = { firstName, email };
         await AsyncStorage.setItem("profileData", JSON.stringify(newUser));
-        navigation.replace("HomeTest");
+        navigation.replace("Home");
         return;
       }
     // If user exists → validate
@@ -64,7 +63,7 @@ export default function Onboarding({ navigation }) {
         email === registeredUser.email) 
       {
         console.log("First name= "  + firstName + " Email= " + email);
-        navigation.replace("HomeTest");
+        navigation.replace("Home");
       } else {
         console.log("First name= "  + firstName + " Email= " + email);
         console.log("registeredUser.firstName= "  + registeredUser.firstName +
@@ -80,7 +79,10 @@ export default function Onboarding({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
  
-      <Header onBackPress={false} showProfileImage={false}></Header>
+      {/* <Header onBackPress={false} showProfileImage={false}></Header> */}
+      <View style={styles.logoView}>
+         <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
+      </View>
      
       <View style={styles.heroView}>
           <Text style={styles.heading}> Littile Lemon </Text>
@@ -125,6 +127,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: Colors.bg_color,
+  },
+  logoView:{
+    width: "100%",
+    flex: 0.2,
+    alignItems: "center",
+    justifyContent: "center",
+    padding:5
   },
   heroView: {
     flex: 1,

@@ -4,7 +4,7 @@ import { Video } from "expo-av";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import HomeTest from "./screens/HomeTest";
+import Home from "./screens/Home";
 import Onboarding from "./screens/Onboarding";
 import Profile from "./screens/Profile";
 
@@ -16,10 +16,15 @@ export default function App() {
   useEffect(() => {
     const checkUserData = async () => {
       try {
-        const userData = await AsyncStorage.getItem("profileData");
+        const userDataPromise  = await AsyncStorage.getItem("profileData");
+
+        const timerPromise = new Promise((resolve) => setTimeout(resolve, 5000)); // 5 seconds
+        const [userData] = await Promise.all([userDataPromise, timerPromise]);
+
         console.log("User Data on onboarding screen:", userData);
-        setInitialRoute(userData ? "HomeTest" : "Onboarding");
+        setInitialRoute(userData ? "Home" : "Onboarding");
         console.log("initialRoute==",initialRoute);
+        
       } catch (error) {
         console.error("Error fetching user data:", error);
         setInitialRoute("Onboarding");
@@ -51,7 +56,7 @@ export default function App() {
       <Stack.Navigator initialRouteName={initialRoute}
          screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={Onboarding} />
-        <Stack.Screen name="HomeTest" component={HomeTest} />
+        <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     
